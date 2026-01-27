@@ -8,11 +8,20 @@
 import SwiftUI
 
 struct TodoListView: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-    }
-}
 
-#Preview {
-    TodoListView()
+    @StateObject private var viewModel = TodoListViewModel()
+
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(viewModel.todos) { todo in
+                    Text(todo.title ?? "")
+                }
+            }
+            .navigationTitle("Задачи")
+            .onAppear {
+                viewModel.fetchTodos()
+            }
+        }
+    }
 }
