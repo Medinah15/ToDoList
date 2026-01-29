@@ -9,16 +9,16 @@ import Foundation
 import CoreData
 
 final class TodoListViewModel: ObservableObject {
-
+    
     @Published var todos: [ToDoEntity] = []
-
+    
     private let context =
-        PersistenceController.shared.container.viewContext
-
+    PersistenceController.shared.container.viewContext
+    
     func fetchTodos() {
         let request: NSFetchRequest<ToDoEntity> =
-            ToDoEntity.fetchRequest()
-
+        ToDoEntity.fetchRequest()
+        
         let result = (try? context.fetch(request)) ?? []
         todos = result
     }

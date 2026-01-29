@@ -8,20 +8,30 @@
 import SwiftUI
 
 struct TodoListView: View {
-
+    
     @StateObject private var viewModel = TodoListViewModel()
-
+    
     var body: some View {
-        NavigationStack {
+        VStack(alignment: .leading) {
+            
+            Text("Задачи")
+                .font(.bold34)
+                .foregroundStyle(Color("NavigationTitle"))
+                .padding(.leading, 12)
+                .padding(.top, 21)
+            
             List {
                 ForEach(viewModel.todos) { todo in
                     Text(todo.title ?? "")
                 }
             }
-            .navigationTitle("Задачи")
-            .onAppear {
-                viewModel.fetchTodos()
-            }
+            .listStyle(.plain)
+            
+        }
+        .background(Color("Background"))
+        
+        .onAppear {
+            viewModel.fetchTodos()
         }
     }
 }
