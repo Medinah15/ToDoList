@@ -11,6 +11,7 @@ import CoreData
 final class TodoListViewModel: ObservableObject {
     
     @Published var todos: [ToDoEntity] = []
+    @Published var searchText: String = ""
     
     private let context =
     PersistenceController.shared.container.viewContext

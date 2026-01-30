@@ -16,9 +16,12 @@ struct TodoListView: View {
             
             Text("Задачи")
                 .font(.bold34)
-                .foregroundStyle(Color("NavigationTitle"))
-                .padding(.leading, 12)
+                .foregroundStyle(Color("MainText"))
+                .padding(.leading, 10)
                 .padding(.top, 21)
+                .padding(.bottom, 1)
+            
+            TodoSearchBarView(text: $viewModel.searchText)
             
             List {
                 ForEach(viewModel.todos) { todo in
@@ -26,7 +29,7 @@ struct TodoListView: View {
                 }
             }
             .listStyle(.plain)
-            
+            .scrollContentBackground(.hidden)
         }
         .background(Color("Background"))
         
