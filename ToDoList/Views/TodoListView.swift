@@ -25,7 +25,7 @@ struct TodoListView: View {
             
             List {
                 ForEach(viewModel.todos) { todo in
-                    Text(todo.title ?? "")
+                    TodoRowView(todo: todo)
                 }
             }
             .listStyle(.plain)
