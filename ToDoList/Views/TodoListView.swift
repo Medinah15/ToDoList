@@ -34,7 +34,7 @@ struct TodoListView: View {
         .background(Color("Background"))
         
         .onAppear {
-            viewModel.fetchTodos()
+            viewModel.loadTodosIfNeeded()
         }
     }
 }
