@@ -39,5 +39,6 @@ struct TodoSearchBarView: View {
                 .fill(Color("Surface"))
         )
         .padding(.horizontal, 12)
+        .padding(.bottom, 16)
     }
 }

@@ -14,7 +14,7 @@ struct TodoRowView: View {
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             
-            Image(systemName: todo.isCompleted ? "checkmark.circle.fill" : "circle")
+            Image(systemName: todo.isCompleted ? "checkmark.circle" : "circle")
                 .foregroundStyle(todo.isCompleted ? Color("Yellow") : Color("Gray"))
                 .font(.system(size: 24))
             
@@ -22,26 +22,37 @@ struct TodoRowView: View {
                 
                 Text(todo.title ?? "")
                     .font(.medium16)
-                    .foregroundStyle(Color("MainText"))
+                    .foregroundStyle(
+                        todo.isCompleted
+                        ? Color("TextHint")
+                        : Color("MainText")
+                    )
+                    .strikethrough(
+                        todo.isCompleted,
+                        color: Color("TextHint")
+                    )
                     .lineLimit(2)
                 
                 if let details = todo.details,
                    !details.isEmpty {
                     Text(details)
                         .font(.regular12)
-                        .foregroundStyle(Color("MainText"))
+                        .foregroundStyle(
+                            todo.isCompleted
+                            ? Color("TextHint")
+                            : Color("MainText")
+                        )
                         .lineLimit(2)
                 }
                 
                 if let date = todo.createdAt {
-                    Text(date.formatted(date: .numeric, time: .omitted))
+                    Text(date.formattedForTodo())
                         .font(.regular12)
                         .foregroundStyle(Color("TextHint"))
                 }
             }
-            
             Spacer()
         }
-        .padding(.vertical, 24)
+        .padding(.vertical, 12)
     }
 }
