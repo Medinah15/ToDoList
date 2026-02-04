@@ -10,6 +10,8 @@ import SwiftUI
 struct TodoRowView: View {
     
     let todo: ToDoEntity
+    var onDelete: (() -> Void)?
+    var onEdit: (() -> Void)?
     
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
@@ -54,5 +56,24 @@ struct TodoRowView: View {
             Spacer()
         }
         .padding(.vertical, 12)
+        .contextMenu {
+            Button {
+                onEdit?()
+            } label: {
+                Label("Редактировать", systemImage: "square.and.pencil")
+            }
+            
+            Button {
+                
+            } label: {
+                Label("Поделиться", systemImage: "square.and.arrow.up")
+            }
+            
+            Button(role: .destructive) {
+                onDelete?()
+            } label: {
+                Label("Удалить", systemImage: "trash")
+            }
+        }
     }
 }

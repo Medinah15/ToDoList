@@ -27,7 +27,15 @@ struct TodoListView: View {
                 ForEach(viewModel.todos) { todo in
                     VStack(spacing: 0) {
                         
-                        TodoRowView(todo: todo)
+                        TodoRowView(
+                            todo: todo,
+                            onDelete: {
+                                viewModel.delete(todo: todo)
+                            },
+                            onEdit: {
+                                
+                            }
+                        )
                         
                         Divider()
                             .padding(.leading, 20)

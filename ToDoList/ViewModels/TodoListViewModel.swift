@@ -88,4 +88,17 @@ final class TodoListViewModel: ObservableObject {
         
         try? context.save()
     }
+    
+    func delete(todo: ToDoEntity) {
+        DispatchQueue.global(qos: .background).async {
+            self.context.delete(todo)
+            
+            do {
+                try self.context.save()
+                self.fetchTodos(searchText: self.searchText)
+            } catch {
+                print("Delete error:", error)
+            }
+        }
+    }
 }
