@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreData
+import Combine
 
 final class TodoListViewModel: ObservableObject {
     
@@ -15,6 +16,12 @@ final class TodoListViewModel: ObservableObject {
     
     private let context =
     PersistenceController.shared.container.viewContext
+    
+    private var cancellables = Set<AnyCancellable>()
+    
+    init() {
+        setupSearch()
+    }
     
     func loadTodosIfNeeded() {
         let request: NSFetchRequest<ToDoEntity> = ToDoEntity.fetchRequest()
@@ -39,6 +46,36 @@ final class TodoListViewModel: ObservableObject {
         }
     }
     
+    private func setupSearch() {
+        $searchText
+            .removeDuplicates()
+            .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
+            .sink { [weak self] text in
+                self?.fetchTodos(searchText: text)
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func fetchTodos(searchText: String = "") {
+        let request: NSFetchRequest<ToDoEntity> = ToDoEntity.fetchRequest()
+        
+        if !searchText.isEmpty {
+            request.predicate = NSPredicate(
+                format: "title CONTAINS[cd] %@",
+                searchText
+            )
+        }
+        
+        do {
+            let result = try context.fetch(request)
+            DispatchQueue.main.async {
+                self.todos = result
+            }
+        } catch {
+            print("Fetch error:", error)
+        }
+    }
+    
     private func saveTodos(_ dtos: [TodoDTO]) {
         dtos.forEach { dto in
             let todo = ToDoEntity(context: context)
@@ -50,16 +87,5 @@ final class TodoListViewModel: ObservableObject {
         }
         
         try? context.save()
-    }
-    
-    private func fetchTodos() {
-        let request: NSFetchRequest<ToDoEntity> =
-        ToDoEntity.fetchRequest()
-        
-        let result = (try? context.fetch(request)) ?? []
-        
-        DispatchQueue.main.async {
-            self.todos = result
-        }
     }
 }
