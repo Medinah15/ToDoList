@@ -13,14 +13,17 @@ final class TodoEditViewModel: ObservableObject {
     @Published var title: String
     @Published var details: String
     
-    private let todo: ToDoEntity
-    private let context: NSManagedObjectContext
+    private let todoID: NSManagedObjectID
+    private let viewContext: NSManagedObjectContext
+    private let backgroundContext: NSManagedObjectContext
     
     private var cancellables = Set<AnyCancellable>()
     
     init(todo: ToDoEntity, context: NSManagedObjectContext) {
-        self.todo = todo
-        self.context = context
+        self.todoID = todo.objectID
+        self.viewContext = context
+        self.backgroundContext =
+        PersistenceController.shared.backgroundContext
         
         self.title = todo.title ?? ""
         self.details = todo.details ?? ""
@@ -40,18 +43,33 @@ final class TodoEditViewModel: ObservableObject {
     }
     
     private func save(title: String, details: String) {
-        todo.title = title
-        todo.details = details
-        
-        do {
-            try context.save()
-        } catch {
-            print("Save edit error:", error)
+        backgroundContext.perform {
+            guard let todo =
+                    try? self.backgroundContext
+                .existingObject(with: self.todoID) as? ToDoEntity
+            else { return }
+            
+            todo.title = title
+            todo.details = details
+            
+            do {
+                try self.backgroundContext.save()
+            } catch {
+                print("Save edit error:", error)
+            }
         }
     }
     
     var createdAtText: String? {
-        guard let date = todo.createdAt else { return nil }
+        guard
+            let todo =
+                try? viewContext
+                .existingObject(with: todoID) as? ToDoEntity,
+            let date = todo.createdAt
+        else {
+            return nil
+        }
+        
         return date.formattedForTodo()
     }
 }

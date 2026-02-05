@@ -17,6 +17,9 @@ final class TodoListViewModel: ObservableObject {
     private let context =
     PersistenceController.shared.container.viewContext
     
+    private let backgroundContext =
+    PersistenceController.shared.backgroundContext
+    
     private var cancellables = Set<AnyCancellable>()
     
     init() {
@@ -37,13 +40,19 @@ final class TodoListViewModel: ObservableObject {
             
             switch result {
             case .success(let dtos):
-                self.saveTodos(dtos)
-                self.fetchTodos()
+                self.backgroundContext.perform {
+                    self.saveTodos(dtos, in: self.backgroundContext)
+                    
+                    DispatchQueue.main.async {
+                        self.fetchTodos()
+                    }
+                }
                 
             case .failure(let error):
                 print("Network error:", error)
             }
         }
+        
     }
     
     private func setupSearch() {
@@ -57,30 +66,41 @@ final class TodoListViewModel: ObservableObject {
     }
     
     private func fetchTodos(searchText: String = "") {
-        let request: NSFetchRequest<ToDoEntity> = ToDoEntity.fetchRequest()
+        let viewContext = context
         
-        request.sortDescriptors = [
-            NSSortDescriptor(keyPath: \ToDoEntity.createdAt, ascending: false)
-        ]
-        
-        if !searchText.isEmpty {
-            request.predicate = NSPredicate(
-                format: "title CONTAINS[cd] %@",
-                searchText
-            )
-        }
-        
-        do {
-            let result = try context.fetch(request)
-            DispatchQueue.main.async {
-                self.todos = result
+        backgroundContext.perform {
+            let request: NSFetchRequest<ToDoEntity> = ToDoEntity.fetchRequest()
+            
+            request.sortDescriptors = [
+                NSSortDescriptor(keyPath: \ToDoEntity.createdAt, ascending: false)
+            ]
+            
+            if !searchText.isEmpty {
+                request.predicate = NSPredicate(
+                    format: "title CONTAINS[cd] %@",
+                    searchText
+                )
             }
-        } catch {
-            print("Fetch error:", error)
+            
+            do {
+                let result = try self.backgroundContext.fetch(request)
+                let objectIDs = result.map { $0.objectID }
+                
+                DispatchQueue.main.async {
+                    self.todos = objectIDs.compactMap {
+                        try? viewContext.existingObject(with: $0) as? ToDoEntity
+                    }
+                }
+            } catch {
+                print("Background fetch error:", error)
+            }
         }
     }
     
-    private func saveTodos(_ dtos: [TodoDTO]) {
+    private func saveTodos(
+        _ dtos: [TodoDTO],
+        in context: NSManagedObjectContext
+    ) {
         dtos.forEach { dto in
             let todo = ToDoEntity(context: context)
             todo.id = UUID()
@@ -94,34 +114,47 @@ final class TodoListViewModel: ObservableObject {
     }
     
     func delete(todo: ToDoEntity) {
-        DispatchQueue.global(qos: .background).async {
-            self.context.delete(todo)
-            
-            do {
-                try self.context.save()
-                self.fetchTodos(searchText: self.searchText)
-            } catch {
-                print("Delete error:", error)
+        let objectID = todo.objectID
+        
+        backgroundContext.perform {
+            if let todoInContext =
+                try? self.backgroundContext.existingObject(with: objectID) {
+                
+                self.backgroundContext.delete(todoInContext)
+                try? self.backgroundContext.save()
+                
+                DispatchQueue.main.async {
+                    self.fetchTodos(searchText: self.searchText)
+                }
             }
         }
     }
     
-    func addTodo() -> ToDoEntity {
-        let todo = ToDoEntity(context: context)
-        todo.id = UUID()
-        todo.title = ""
-        todo.details = ""
-        todo.isCompleted = false
-        todo.createdAt = Date()
-        
-        do {
-            try context.save()
-            fetchTodos(searchText: searchText)
-        } catch {
-            print("Add todo error:", error)
+    func addTodo(completion: @escaping (ToDoEntity) -> Void) {
+        backgroundContext.perform {
+            let todo = ToDoEntity(context: self.backgroundContext)
+            todo.id = UUID()
+            todo.title = ""
+            todo.details = ""
+            todo.isCompleted = false
+            todo.createdAt = Date()
+            
+            do {
+                try self.backgroundContext.save()
+                let objectID = todo.objectID
+                
+                DispatchQueue.main.async {
+                    let viewContext = self.context
+                    if let todoInViewContext =
+                        try? viewContext.existingObject(with: objectID) as? ToDoEntity {
+                        
+                        self.fetchTodos(searchText: self.searchText)
+                        completion(todoInViewContext)
+                    }
+                }
+            } catch {
+                print("Add todo error:", error)
+            }
         }
-        
-        return todo
     }
-    
 }

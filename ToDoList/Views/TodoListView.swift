@@ -71,8 +71,9 @@ struct TodoListView: View {
                         Spacer()
                         
                         Button {
-                            let newTodo = viewModel.addTodo()
-                            editingTodo = newTodo
+                            viewModel.addTodo { newTodo in
+                                editingTodo = newTodo
+                            }
                         } label: {
                             Image(systemName: "square.and.pencil")
                                 .font(.regular22)

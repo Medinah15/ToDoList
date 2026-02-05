@@ -29,4 +29,8 @@ struct PersistenceController {
         
         container.viewContext.automaticallyMergesChangesFromParent = true
     }
+    
+    var backgroundContext: NSManagedObjectContext {
+        container.newBackgroundContext()
+    }
 }
