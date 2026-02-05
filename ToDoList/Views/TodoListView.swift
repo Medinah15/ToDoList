@@ -96,5 +96,6 @@ struct TodoListView: View {
                 )
             }
         }
+        .preferredColorScheme(.dark)
     }
 }

@@ -19,7 +19,7 @@ struct TodoEditView: View {
                 Button {
                     dismiss()
                 } label: {
-                    HStack(spacing: 6) {
+                    HStack(spacing: 10) {
                         Image("chevron")
                         Text("Назад")
                             .font(.regular17)
@@ -46,13 +46,15 @@ struct TodoEditView: View {
                 }
                 
                 TextEditor(text: $viewModel.details)
-                    .font(.regular12)
+                    .font(.regular16)
                     .foregroundStyle(Color("MainText"))
                     .frame(minHeight: 120)
+                    .padding(.leading, -4)
                 
                 Spacer()
             }
-            .padding()
+            .padding(.horizontal, 10)
+            .padding(.top, 8)
         }
         .background(Color("Background"))
         .navigationBarHidden(true) 
