@@ -59,6 +59,10 @@ final class TodoListViewModel: ObservableObject {
     private func fetchTodos(searchText: String = "") {
         let request: NSFetchRequest<ToDoEntity> = ToDoEntity.fetchRequest()
         
+        request.sortDescriptors = [
+            NSSortDescriptor(keyPath: \ToDoEntity.createdAt, ascending: false)
+        ]
+        
         if !searchText.isEmpty {
             request.predicate = NSPredicate(
                 format: "title CONTAINS[cd] %@",
@@ -101,4 +105,23 @@ final class TodoListViewModel: ObservableObject {
             }
         }
     }
+    
+    func addTodo() -> ToDoEntity {
+        let todo = ToDoEntity(context: context)
+        todo.id = UUID()
+        todo.title = ""
+        todo.details = ""
+        todo.isCompleted = false
+        todo.createdAt = Date()
+        
+        do {
+            try context.save()
+            fetchTodos(searchText: searchText)
+        } catch {
+            print("Add todo error:", error)
+        }
+        
+        return todo
+    }
+    
 }

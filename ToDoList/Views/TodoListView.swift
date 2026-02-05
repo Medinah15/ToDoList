@@ -71,12 +71,14 @@ struct TodoListView: View {
                         Spacer()
                         
                         Button {
-                            
+                            let newTodo = viewModel.addTodo()
+                            editingTodo = newTodo
                         } label: {
                             Image(systemName: "square.and.pencil")
                                 .font(.regular22)
                                 .foregroundStyle(Color("Yellow"))
                         }
+                        
                         .padding(.trailing, 23)
                     }
                 }
