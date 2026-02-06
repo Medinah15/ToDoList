@@ -39,11 +39,9 @@ struct TodoEditView: View {
                     .font(.bold34)
                     .foregroundStyle(Color("MainText"))
                 
-                if let dateText = viewModel.createdAtText {
-                    Text(dateText)
-                        .font(.regular12)
-                        .foregroundStyle(Color("TextHint"))
-                }
+                Text(viewModel.createdAtText) 
+                    .font(.regular12)
+                    .foregroundStyle(Color("TextHint"))
                 
                 TextEditor(text: $viewModel.details)
                     .font(.regular16)
@@ -57,6 +55,6 @@ struct TodoEditView: View {
             .padding(.top, 8)
         }
         .background(Color("Background"))
-        .navigationBarHidden(true) 
+        .navigationBarHidden(true)
     }
 }
